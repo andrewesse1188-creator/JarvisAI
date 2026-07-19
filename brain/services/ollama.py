@@ -1,0 +1,49 @@
+import requests
+
+OLLAMA_URL = "http://127.0.0.1:11434"
+
+
+def check_connection():
+    """Comprueba si Ollama está activo."""
+    try:
+        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
+
+        if response.status_code == 200:
+            return True
+
+        return False
+
+    except Exception:
+        return False
+
+
+def list_models():
+    """Obtiene la lista de modelos instalados."""
+    try:
+        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
+
+        if response.status_code == 200:
+            data = response.json()
+
+            return [model["name"] for model in data.get("models", [])]
+
+        return []
+
+    except Exception:
+        return []
+
+def chat(model: str, prompt: str):
+
+    response = requests.post(
+        f"{OLLAMA_URL}/api/generate",
+        json={
+            "model": model,
+            "prompt": prompt,
+            "stream": False
+        },
+        timeout=300
+    )
+
+    response.raise_for_status()
+
+    return response.json()["response"]

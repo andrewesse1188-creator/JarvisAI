@@ -1,0 +1,49 @@
+from agents.core.manager import agent_manager
+
+
+class AgentSelector:
+
+    def select(self, prompt: str):
+        prompt_lower = prompt.lower()
+        selected = []
+
+        rules = {
+            "atlas": [
+                "arquitectura", "diseña un sistema", "microservicio",
+                "base de datos", "api", "proyecto grande"
+            ],
+            "orion": [
+                "programa", "programar", "código", "codigo", "python",
+                "fastapi", "función", "funcion", "error", "debug"
+            ],
+            "athena": [
+                "investiga", "investigar", "explica", "resumen",
+                "documentación", "documentacion", "informe"
+            ],
+            "sentinel": [
+                "seguridad", "ciberseguridad", "vulnerabilidad",
+                "proteger", "riesgo", "autenticación", "autenticacion"
+            ],
+            "forge": [
+                "docker", "linux", "ubuntu", "despliegue",
+                "servidor", "devops", "infraestructura"
+            ]
+        }
+
+        for agent_id, keywords in rules.items():
+            if any(keyword in prompt_lower for keyword in keywords):
+                agent = agent_manager.get_agent(agent_id)
+
+                if agent and agent.enabled:
+                    selected.append(agent)
+
+        if not selected:
+            default_agent = agent_manager.get_agent("athena")
+
+            if default_agent:
+                selected.append(default_agent)
+
+        return selected
+
+
+agent_selector = AgentSelector()

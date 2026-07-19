@@ -1,0 +1,48 @@
+from gateway.core.gateway import gateway
+
+
+class Agent:
+
+    def __init__(
+        self,
+        agent_id,
+        name,
+        role,
+        description,
+        model,
+        skills,
+        system_prompt,
+        enabled=True
+    ):
+        self.id = agent_id
+        self.name = name
+        self.role = role
+        self.description = description
+        self.model = model
+        self.skills = skills
+        self.system_prompt = system_prompt
+        self.enabled = enabled
+
+    def build_prompt(self, user_prompt: str) -> str:
+
+        return f"""
+{self.system_prompt}
+
+Usuario:
+
+{user_prompt}
+"""
+
+    def execute(self, user_prompt: str):
+
+        prompt = self.build_prompt(user_prompt)
+
+        return gateway.generate(
+            prompt=prompt,
+            model=self.model,
+            provider="ollama"
+        )
+
+    def __repr__(self):
+        status = "activo" if self.enabled else "inactivo"
+        return f"<Agent {self.name} | {self.role} | {status}>"

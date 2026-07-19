@@ -1,0 +1,52 @@
+from conversation.history.chat_history import history
+from orchestrator.core.orchestrator import orchestrator
+
+
+class ConversationEngine:
+
+    def process(self, prompt: str):
+
+        # Obtenemos el contexto ANTES de guardar
+        # la nueva pregunta para no duplicarla.
+        previous_context = history.context()
+
+        history.add("user", prompt)
+
+        if previous_context:
+
+            contextual_prompt = f"""
+CONTEXTO RECIENTE DE LA CONVERSACIÓN:
+
+{previous_context}
+
+NUEVO MENSAJE DEL USUARIO:
+
+{prompt}
+
+INSTRUCCIÓN:
+Responde al nuevo mensaje teniendo en cuenta el contexto anterior.
+Si el usuario utiliza expresiones como "eso", "agrégale",
+"continúa", "ahora hazlo" o similares, interpreta la referencia
+usando la conversación anterior.
+
+No repitas todo el historial.
+Responde directamente a la petición actual.
+"""
+
+        else:
+
+            contextual_prompt = prompt
+
+        response = orchestrator.process(
+            contextual_prompt
+        )
+
+        history.add(
+            "assistant",
+            response
+        )
+
+        return response
+
+
+engine = ConversationEngine()

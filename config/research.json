@@ -1,0 +1,20 @@
+{
+    "enabled": true,
+
+    "default_provider": "duckduckgo",
+
+    "providers": {
+
+        "duckduckgo": true,
+
+        "github": true,
+
+        "python_docs": true,
+
+        "wikipedia": true
+    },
+
+    "cache_minutes": 30,
+
+    "max_results": 5
+}

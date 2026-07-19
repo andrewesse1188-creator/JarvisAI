@@ -1,0 +1,133 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from conversation.main import engine
+from resources.manager import resource_manager
+
+
+app = FastAPI(
+    title="JARVIS AI API",
+    description="API del sistema multiagente JARVIS",
+    version="0.1.0"
+)
+
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+@app.get("/")
+def root():
+    return {
+        "name": "JARVIS AI",
+        "version": "0.1.0",
+        "status": "online"
+    }
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "resources": resource_manager.get_status()
+    }
+
+
+@app.post("/chat", response_model=ChatResponse)
+def chat(request: ChatRequest):
+
+    response = engine.process(
+        request.message
+    )
+
+    return ChatResponse(
+        response=response
+    )
+
+
+@app.delete("/memory")
+def clear_memory():
+
+    engine.clear_history()
+
+    return {
+        "status": "ok",
+        "message": "Memoria de conversación eliminada"
+    }
+
+from typing import List, Optional
+import time
+import uuid
+
+
+class OpenAIMessage(BaseModel):
+    role: str
+    content: str
+
+
+class OpenAIChatRequest(BaseModel):
+    model: Optional[str] = "jarvis"
+    messages: List[OpenAIMessage]
+    stream: Optional[bool] = False
+
+
+@app.get("/v1/models")
+def openai_models():
+    return {
+        "object": "list",
+        "data": [
+            {
+                "id": "jarvis",
+                "object": "model",
+                "created": int(time.time()),
+                "owned_by": "jarvis-ai"
+            }
+        ]
+    }
+
+
+@app.post("/v1/chat/completions")
+def openai_chat(request: OpenAIChatRequest):
+
+    user_messages = [
+        message.content
+        for message in request.messages
+        if message.role == "user"
+    ]
+
+    if not user_messages:
+        return {
+            "error": {
+                "message": "No se encontró un mensaje del usuario."
+            }
+        }
+
+    prompt = user_messages[-1]
+
+    response = engine.process(prompt)
+
+    return {
+        "id": f"chatcmpl-{uuid.uuid4().hex}",
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": "jarvis",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": response
+                },
+                "finish_reason": "stop"
+            }
+        ],
+        "usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+        }
+    }

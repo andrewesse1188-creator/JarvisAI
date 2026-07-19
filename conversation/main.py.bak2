@@ -1,0 +1,18 @@
+from conversation.history.chat_history import history
+from orchestrator.core.orchestrator import orchestrator
+
+
+class ConversationEngine:
+
+    def process(self, prompt: str):
+
+        history.add("user", prompt)
+
+        response = orchestrator.process(prompt)
+
+        history.add("assistant", response)
+
+        return response
+
+
+engine = ConversationEngine()

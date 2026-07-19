@@ -1,0 +1,48 @@
+from agents.core.selector import agent_selector
+from gateway.core.gateway import gateway
+
+
+class Orchestrator:
+
+    def process(self, prompt: str):
+
+        agents = agent_selector.select(prompt)
+
+        results = []
+
+        for agent in agents:
+
+            full_prompt = f"""
+{agent.system_prompt}
+
+PETICIÓN DEL USUARIO:
+{prompt}
+
+Responde desde tu especialidad como {agent.name}.
+"""
+
+            try:
+                response = gateway.generate(
+                    prompt=full_prompt,
+                    model=agent.model,
+                    provider="ollama"
+                )
+
+                results.append({
+                    "agent": agent.name,
+                    "role": agent.role,
+                    "response": response
+                })
+
+            except Exception as error:
+
+                results.append({
+                    "agent": agent.name,
+                    "role": agent.role,
+                    "response": f"Error ejecutando agente: {error}"
+                })
+
+        return results
+
+
+orchestrator = Orchestrator()

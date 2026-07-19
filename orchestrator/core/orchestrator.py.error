@@ -1,0 +1,72 @@
+from agents.core.selector import agent_selector
+from gateway.core.gateway import gateway
+from resources.manager import resource_manager
+
+
+class Orchestrator:
+
+    def process(self, prompt: str):
+
+        agents = agent_selector.select(prompt)
+
+        max_agents = resource_manager.recommended_agents()
+
+        if max_agents == 0:
+            return [{
+                "agent": "JARVIS",
+                "role": "Resource Manager",
+                "response": (
+                    "La carga o temperatura del sistema es demasiado alta "
+                    "para iniciar una tarea pesada en este momento."
+                )
+            }]
+
+        agents = agents[:max_agents]
+
+        results = []
+
+        for agent in agents:
+
+            full_prompt = f"""
+{agent.system_prompt}
+
+PETICIÓN DEL USUARIO:
+{prompt}
+
+INSTRUCCIONES:
+Responde directamente a la petición.
+Trabaja únicamente desde tu especialidad.
+Evita contenido irrelevante.
+No repitas innecesariamente la pregunta.
+
+RESPUESTA:
+"""
+
+            try:
+
+                response = gateway.generate(
+                    prompt=full_prompt,
+                    model=agent.model,
+                    provider="ollama"
+                )
+
+                results.append({
+                    "agent": agent.name,
+                    "role": agent.role,
+                    "model": agent.model,
+                    "response": response
+                })
+
+            except Exception as error:
+
+                results.append({
+                    "agent": agent.name,
+                    "role": agent.role,
+                    "model": agent.model,
+                    "response": f"Error: {error}"
+                })
+
+        return results
+
+
+orchestrator = Orchestrator()

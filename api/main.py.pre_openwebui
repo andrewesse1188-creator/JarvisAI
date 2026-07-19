@@ -1,0 +1,60 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from conversation.main import engine
+from resources.manager import resource_manager
+
+
+app = FastAPI(
+    title="JARVIS AI API",
+    description="API del sistema multiagente JARVIS",
+    version="0.1.0"
+)
+
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+@app.get("/")
+def root():
+    return {
+        "name": "JARVIS AI",
+        "version": "0.1.0",
+        "status": "online"
+    }
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "resources": resource_manager.get_status()
+    }
+
+
+@app.post("/chat", response_model=ChatResponse)
+def chat(request: ChatRequest):
+
+    response = engine.process(
+        request.message
+    )
+
+    return ChatResponse(
+        response=response
+    )
+
+
+@app.delete("/memory")
+def clear_memory():
+
+    engine.clear_history()
+
+    return {
+        "status": "ok",
+        "message": "Memoria de conversación eliminada"
+    }

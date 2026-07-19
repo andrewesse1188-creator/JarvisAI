@@ -1,0 +1,196 @@
+from agents.core.manager import agent_manager
+
+
+class AgentSelector:
+
+    def _get(self, agent_id):
+        agent = agent_manager.get_agent(agent_id)
+
+        if agent and agent.enabled:
+            return agent
+
+        return None
+
+
+    def select(self, prompt: str):
+
+        text = prompt.lower().strip()
+
+        # --------------------------------------------------
+        # 1. TAREAS COMPLEJAS MULTIAGENTE
+        # --------------------------------------------------
+
+        complexity_words = [
+            "proyecto completo",
+            "sistema completo",
+            "arquitectura completa",
+            "aplicación completa",
+            "aplicacion completa",
+            "proyecto empresarial",
+            "sistema empresarial",
+            "solución completa",
+            "solucion completa"
+        ]
+
+        is_complex = any(word in text for word in complexity_words)
+
+        if is_complex:
+
+            selected = []
+
+            # Atlas: arquitectura
+            if any(word in text for word in [
+                "arquitectura",
+                "sistema",
+                "api",
+                "microservicio",
+                "base de datos"
+            ]):
+                agent = self._get("atlas")
+                if agent:
+                    selected.append(agent)
+
+            # Orion: programación
+            if any(word in text for word in [
+                "programa",
+                "programar",
+                "código",
+                "codigo",
+                "python",
+                "fastapi",
+                "backend",
+                "aplicación",
+                "aplicacion"
+            ]):
+                agent = self._get("orion")
+                if agent:
+                    selected.append(agent)
+
+            # Sentinel: seguridad
+            if any(word in text for word in [
+                "seguro",
+                "seguridad",
+                "ciberseguridad",
+                "autenticación",
+                "autenticacion",
+                "vulnerabilidad"
+            ]):
+                agent = self._get("sentinel")
+                if agent:
+                    selected.append(agent)
+
+            # Forge: infraestructura
+            if any(word in text for word in [
+                "docker",
+                "linux",
+                "servidor",
+                "despliegue",
+                "devops",
+                "infraestructura"
+            ]):
+                agent = self._get("forge")
+                if agent:
+                    selected.append(agent)
+
+            # Máximo 3 agentes por ahora.
+            if selected:
+                return selected[:3]
+
+
+        # --------------------------------------------------
+        # 2. PROGRAMACIÓN
+        # --------------------------------------------------
+
+        if any(word in text for word in [
+            "programa",
+            "programar",
+            "código",
+            "codigo",
+            "python",
+            "fastapi",
+            "javascript",
+            "función",
+            "funcion",
+            "debug",
+            "error de código",
+            "error de codigo"
+        ]):
+
+            agent = self._get("orion")
+
+            if agent:
+                return [agent]
+
+
+        # --------------------------------------------------
+        # 3. CIBERSEGURIDAD
+        # --------------------------------------------------
+
+        if any(word in text for word in [
+            "ciberseguridad",
+            "vulnerabilidad",
+            "seguridad informática",
+            "seguridad informatica",
+            "firewall",
+            "malware",
+            "phishing",
+            "pentesting"
+        ]):
+
+            agent = self._get("sentinel")
+
+            if agent:
+                return [agent]
+
+
+        # --------------------------------------------------
+        # 4. DEVOPS / LINUX / DOCKER
+        # --------------------------------------------------
+
+        if any(word in text for word in [
+            "docker",
+            "docker compose",
+            "ubuntu",
+            "linux",
+            "servidor",
+            "devops",
+            "despliegue"
+        ]):
+
+            agent = self._get("forge")
+
+            if agent:
+                return [agent]
+
+
+        # --------------------------------------------------
+        # 5. ARQUITECTURA
+        # --------------------------------------------------
+
+        if any(word in text for word in [
+            "arquitectura de software",
+            "diseña una arquitectura",
+            "diseñar una arquitectura",
+            "microservicios",
+            "diseño de sistema"
+        ]):
+
+            agent = self._get("atlas")
+
+            if agent:
+                return [agent]
+
+
+        # --------------------------------------------------
+        # 6. CONSULTAS GENERALES
+        # --------------------------------------------------
+
+        agent = self._get("athena")
+
+        if agent:
+            return [agent]
+
+        return []
+
+
+agent_selector = AgentSelector()

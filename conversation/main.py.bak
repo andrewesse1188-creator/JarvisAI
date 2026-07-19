@@ -1,0 +1,27 @@
+from conversation.history.chat_history import history
+from planner.main import planner
+from gateway.core.gateway import gateway
+
+
+class ConversationEngine:
+
+    def process(self, prompt: str):
+
+        history.add("user", prompt)
+
+        plan = planner.analyze(prompt)
+
+        model = plan.get("model", "qwen3:8b")
+
+        response = gateway.generate(
+            prompt=prompt,
+            model=model,
+            provider="ollama"
+        )
+
+        history.add("assistant", response)
+
+        return response
+
+
+engine = ConversationEngine()
