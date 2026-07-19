@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Logs
+logs/
+*.log
+
+# Runtime
+runtime/
+
+# Workspaces
+workspaces/
+
+# Cache
+.pytest_cache/
+.mypy_cache/
+cache/
+
+# Databases
+*.db
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Docker Open WebUI
+docker/open-webui/data/
+
+# OS
+.DS_Store
+Thumbs.db
